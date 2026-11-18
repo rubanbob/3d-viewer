@@ -56,9 +56,9 @@
   }
   </script>
 
-  <link rel="icon" type="image/png" href="./favicon.png">
-  <script type="module" crossorigin src="./assets-web/index-Czgk_2r3.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets-web/index-fOthb0Oh.css">
+  <link rel="icon" type="image/png" href="./favicon.png">
+  <script type="module" crossorigin src="./assets-web/index-8KsZDplM.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets-web/index-Ck-v-1wI.css">
 </head>
 <body>
   <div id="app">
@@ -127,12 +127,15 @@
           </div>
         </div>
 
-        <button id="btn-turntable" class="btn icon-only" title="Toggle Turntable Rotation (Space)">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+        <button id="btn-turntable" class="btn toggle-btn" title="Toggle Turntable Rotation (Space)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(-20 12 12)"/><circle cx="12" cy="12" r="2.5"/></svg>
+          <span>Turntable</span>
+          <span class="toggle-pill"><span class="toggle-dot"></span></span>
         </button>
 
-        <button id="btn-reset-view" class="btn icon-only" title="Reset Camera View (R)">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        <button id="btn-reset-view" class="btn" title="Reset Camera View to Isometric (R)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></svg>
+          <span>Reset View</span>
         </button>
 
         <button id="btn-snapshot" class="btn" title="Capture High-Res Image (S)">
@@ -604,6 +607,6 @@
     <!-- Toast Notification Container -->
     <div id="toast-container"></div>
   </div>
-
+
 </body>
 </html>

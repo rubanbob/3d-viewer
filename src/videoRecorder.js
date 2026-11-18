@@ -255,6 +255,8 @@ export class VideoTurntableRecorder {
     // Pause normal turntable if active, we handle rotation deterministically
     this.priorAutoRotate = this.app.autoRotate;
     this.app.autoRotate = false;
+    const turntableBtn = document.getElementById('btn-turntable');
+    if (turntableBtn) turntableBtn.classList.toggle('active', false);
 
     // Store starting orientation
     this.recordingStartQuat.copy(this.app.modelGroup.quaternion);
@@ -293,6 +295,8 @@ export class VideoTurntableRecorder {
 
     // Restore prior turntable state
     this.app.autoRotate = this.priorAutoRotate;
+    const turntableBtn = document.getElementById('btn-turntable');
+    if (turntableBtn) turntableBtn.classList.toggle('active', this.app.autoRotate);
   }
 
   update(time) {

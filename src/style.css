@@ -173,6 +173,53 @@ header.app-header {
   color: var(--accent);
 }
 
+/* Turntable Toggle Button Component */
+.btn.toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+}
+
+.toggle-pill {
+  width: 26px;
+  height: 14px;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  position: relative;
+  transition: all 0.25s ease;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.toggle-dot {
+  width: 10px;
+  height: 10px;
+  background: #cbd5e1;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn.toggle-btn.active {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+}
+
+.btn.toggle-btn.active .toggle-pill {
+  background: var(--accent);
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+}
+
+.btn.toggle-btn.active .toggle-dot {
+  transform: translateX(12px);
+  background: #0d0f14;
+}
+
 /* Floating Left Quick Toolbar */
 .floating-toolbar {
   position: absolute;
