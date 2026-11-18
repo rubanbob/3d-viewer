@@ -4,8 +4,6 @@ A complete, modern 3D Model Viewer & Analysis Web Application (B08).
 
 ---
 
-## 🚀 Features Converted from Mobile App
-
 1. **3D Viewport & Rendering**:
    - High-fidelity WebGL rendering powered by Three.js with PBR material shading, soft directional shadows, and physically-correct lighting.
    - Ground grid and contact shadow receiver plane.
