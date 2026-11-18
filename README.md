@@ -1,6 +1,12 @@
-# B08 Web - 3D Model Viewer & Analysis
+# B08 - Online 3D Model Viewer & Analysis
 
-A complete, modern 3D Model Viewer & Analysis Web Application (B08).
+> Free, fast, private, and open-source 3D model viewer and mesh analysis web application. Inspect, render, align, and record turntable videos for STL, OBJ, GLTF, GLB, 3MF, and PLY files directly in your browser.
+
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Online%20Viewer-brightgreen?style=for-the-badge&logo=googlechrome)](https://rubanbob.github.io/3d-viewer/)
+[![Three.js](https://img.shields.io/badge/Three.js-0.187-black?style=for-the-badge&logo=three.js)](https://threejs.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
+
+🔗 **Live Web Application**: [https://rubanbob.github.io/3d-viewer/](https://rubanbob.github.io/3d-viewer/)
 
 ---
 
@@ -91,16 +97,5 @@ The compiled, production-ready static assets are in the `dist/` directory, ready
 
 ---
 
-## 🌐 Deploy to GitHub Pages (100% Serverless)
-
-Because B08 is a pure static client-side web application with zero backend server dependencies, it runs directly on **GitHub Pages**:
-
-### Option A: Automatic via GitHub Actions (Recommended)
-1. Push this repository to GitHub.
-2. In your repository on GitHub, go to **Settings** > **Pages**.
-3. Under **Build and deployment** > **Source**, choose **GitHub Actions**.
-4. The included `.github/workflows/deploy.yml` will automatically build and publish the app!
-
-### Option B: Deploy `dist/` Folder Directly
-1. Run `npm run build`.
-2. Push the contents of the `dist/` folder to a `gh-pages` branch, or configure GitHub Pages to serve from the `/dist` or `/docs` folder in your repository settings.
+## 🏷️ Keywords & Search Tags
+`3d-viewer` · `online-3d-viewer` · `stl-viewer` · `obj-viewer` · `gltf-viewer` · `glb-viewer` · `3mf-viewer` · `ply-viewer` · `threejs-viewer` · `webgl-3d` · `3d-model-viewer` · `cad-viewer` · `3d-printing-calculator` · `turntable-recorder` · `mesh-analysis`

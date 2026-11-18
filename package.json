@@ -1,7 +1,23 @@
 {
   "name": "b08-web",
   "version": "1.0.0",
-  "description": "B08 3D Model Viewer & Analysis Web App",
+  "description": "B08 - Free online 3D model viewer and mesh analysis web application for STL, OBJ, GLTF, GLB, 3MF, and PLY files with PBR materials, turntable video recording, and 3D print metrics.",
+  "homepage": "https://rubanbob.github.io/3d-viewer/",
+  "keywords": [
+    "3d-viewer",
+    "stl-viewer",
+    "obj-viewer",
+    "gltf-viewer",
+    "glb-viewer",
+    "3mf-viewer",
+    "ply-viewer",
+    "3d-model-viewer",
+    "threejs",
+    "webgl",
+    "3d-printing",
+    "mesh-analysis",
+    "turntable-recorder"
+  ],
   "type": "module",
   "scripts": {
     "dev": "vite --host --port 3000 --open",
