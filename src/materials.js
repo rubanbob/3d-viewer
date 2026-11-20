@@ -17,12 +17,17 @@ export class MaterialManager {
     this.renderMode = 'solid'; // 'solid', 'flat', 'wireframe_overlay', 'wireframe_only', 'points', 'normals', 'xray'
     this.currentPreset = 'original'; // 'original' or preset id or 'custom'
     this.currentColor = '#8a99ad';
-    this.metalness = 0.3;
-    this.roughness = 0.4;
+    this.metalness = 0.35;
+    this.roughness = 0.30;
     this.opacity = 1.0;
     this.doubleSided = true;
     this.wireframeColor = '#38bdf8';
     this.pointSize = 3.0;
+
+    // 3D Builder Display Properties
+    this.shading = true;     // 1. Shading (lit vs unlit basic)
+    this.reflection = true;  // 2. Reflection (specular reflections vs matte)
+    this.smoothing = true;   // 3. Smoothing (smooth normals vs flat faceted faces)
 
     // Cache of original materials cloned directly from the loaded model
     this.originalMaterialsMap = new Map();
@@ -94,35 +99,42 @@ export class MaterialManager {
     this.pointsOverlays = [];
   }
 
-  applyCurrentSettings(rootObject, clippingPlanes = []) {
+  applyCurrentSettings(rootObject) {
     this.clearOverlays();
+
+    const isFlat = !this.smoothing || this.renderMode === 'flat';
+    const effectiveRoughness = this.reflection ? 0.30 : 1.0;
+    const effectiveMetalness = this.reflection ? 0.35 : 0.0;
+    const effectiveEnvIntensity = this.reflection ? 1.0 : 0.0;
+    const side = THREE.DoubleSide;
 
     rootObject.traverse((child) => {
       if (!child.isMesh) return;
 
-      const side = this.doubleSided ? THREE.DoubleSide : THREE.FrontSide;
+      // When smoothing is enabled, ensure vertex normals exist
+      if (this.smoothing && child.geometry && (!child.geometry.attributes.normal || child.geometry.attributes.normal.count === 0)) {
+        child.geometry.computeVertexNormals();
+      }
 
       if (this.renderMode === 'normals') {
         child.visible = true;
         child.material = new THREE.MeshNormalMaterial({
           side,
-          clippingPlanes,
-          clipShadows: true
+          flatShading: isFlat
         });
       } else if (this.renderMode === 'wireframe_only') {
         child.visible = true;
         child.material = new THREE.MeshBasicMaterial({
           color: new THREE.Color(this.currentColor === 'original' ? '#38bdf8' : this.currentColor),
           wireframe: true,
-          clippingPlanes
+          side
         });
       } else if (this.renderMode === 'points') {
         child.visible = false;
         const pointsMat = new THREE.PointsMaterial({
           color: new THREE.Color(this.currentColor === 'original' ? '#38bdf8' : this.currentColor),
           size: this.pointSize,
-          sizeAttenuation: true,
-          clippingPlanes
+          sizeAttenuation: true
         });
         const points = new THREE.Points(child.geometry, pointsMat);
         child.parent.add(points);
@@ -134,60 +146,83 @@ export class MaterialManager {
           transparent: true,
           opacity: 0.35,
           transmission: 0.6,
-          roughness: 0.1,
-          metalness: 0.1,
-          side: THREE.DoubleSide,
+          roughness: effectiveRoughness,
+          metalness: effectiveMetalness,
+          side,
           depthWrite: false,
-          clippingPlanes
+          flatShading: isFlat
         });
       } else {
         // Solid or Flat or Wireframe Overlay
         child.visible = true;
 
-        if (this.currentPreset === 'original' && this.originalMaterialsMap.has(child)) {
-          // Use authentic original GLTF/GLB materials & textures
-          const orig = this.originalMaterialsMap.get(child);
-          if (Array.isArray(orig)) {
-            child.material = orig.map(m => {
-              const clone = m.clone();
-              clone.clippingPlanes = clippingPlanes;
-              clone.clipShadows = true;
-              clone.side = side;
-              if (this.renderMode === 'flat') clone.flatShading = true;
-              clone.needsUpdate = true;
-              return clone;
+        if (!this.shading) {
+          // Unshaded / Unlit Mode (3D Builder Shading = OFF)
+          if (this.currentPreset === 'original' && this.originalMaterialsMap.has(child)) {
+            const orig = this.originalMaterialsMap.get(child);
+            const makeBasic = (m) => new THREE.MeshBasicMaterial({
+              map: m.map || null,
+              color: m.map ? 0xffffff : (m.color ? m.color : 0xffffff),
+              side
             });
+            if (Array.isArray(orig)) {
+              child.material = orig.map(makeBasic);
+            } else {
+              child.material = makeBasic(orig);
+            }
           } else {
-            const clone = orig.clone();
-            clone.clippingPlanes = clippingPlanes;
-            clone.clipShadows = true;
-            clone.side = side;
-            if (this.renderMode === 'flat') clone.flatShading = true;
-            clone.needsUpdate = true;
-            child.material = clone;
+            child.material = new THREE.MeshBasicMaterial({
+              color: new THREE.Color(this.currentColor),
+              side
+            });
           }
         } else {
-          // User selected custom monochrome color or preset
-          const mat = new THREE.MeshStandardMaterial({
-            color: new THREE.Color(this.currentColor),
-            roughness: this.roughness,
-            metalness: this.metalness,
-            flatShading: this.renderMode === 'flat',
-            side,
-            clippingPlanes,
-            clipShadows: true
-          });
-          child.material = mat;
+          // Shaded Mode (3D Builder Shading = ON)
+          if (this.currentPreset === 'original' && this.originalMaterialsMap.has(child)) {
+            // Authentic original GLTF/GLB materials
+            const orig = this.originalMaterialsMap.get(child);
+            const processMat = (m) => {
+              const clone = m.clone();
+              clone.side = side;
+              clone.flatShading = isFlat;
+              if (clone.roughness !== undefined) {
+                clone.roughness = this.reflection ? (m.roughness !== undefined ? m.roughness : 0.35) : 1.0;
+              }
+              if (clone.metalness !== undefined) {
+                clone.metalness = this.reflection ? (m.metalness !== undefined ? m.metalness : 0.2) : 0.0;
+              }
+              if (clone.envMapIntensity !== undefined) {
+                clone.envMapIntensity = effectiveEnvIntensity;
+              }
+              clone.needsUpdate = true;
+              return clone;
+            };
+
+            if (Array.isArray(orig)) {
+              child.material = orig.map(processMat);
+            } else {
+              child.material = processMat(orig);
+            }
+          } else {
+            // Preset or custom monochrome color
+            const mat = new THREE.MeshStandardMaterial({
+              color: new THREE.Color(this.currentColor),
+              roughness: effectiveRoughness,
+              metalness: effectiveMetalness,
+              envMapIntensity: effectiveEnvIntensity,
+              flatShading: isFlat,
+              side
+            });
+            child.material = mat;
+          }
         }
 
         if (this.renderMode === 'wireframe_overlay') {
-          // Add wireframe overlay over existing material
           const wireframeMat = new THREE.MeshBasicMaterial({
             color: new THREE.Color(this.wireframeColor),
             wireframe: true,
             transparent: true,
-            opacity: 0.45,
-            clippingPlanes
+            opacity: 0.45
           });
           const wireMesh = new THREE.Mesh(child.geometry, wireframeMat);
           wireMesh.matrixAutoUpdate = false;
@@ -199,45 +234,53 @@ export class MaterialManager {
     });
   }
 
-  setRenderMode(mode, rootObject, clippingPlanes) {
-    this.renderMode = mode;
-    if (rootObject) this.applyCurrentSettings(rootObject, clippingPlanes);
+  setShading(val, rootObject) {
+    this.shading = val;
+    if (rootObject) this.applyCurrentSettings(rootObject);
   }
 
-  setColor(hex, rootObject, clippingPlanes) {
+  setReflection(val, rootObject) {
+    this.reflection = val;
+    if (rootObject) this.applyCurrentSettings(rootObject);
+  }
+
+  setSmoothing(val, rootObject) {
+    this.smoothing = val;
+    if (val && this.renderMode === 'flat') {
+      this.renderMode = 'solid';
+    } else if (!val && this.renderMode === 'solid') {
+      this.renderMode = 'flat';
+    }
+    if (rootObject) this.applyCurrentSettings(rootObject);
+  }
+
+  setRenderMode(mode, rootObject) {
+    this.renderMode = mode;
+    if (mode === 'flat') {
+      this.smoothing = false;
+    } else if (mode === 'solid') {
+      this.smoothing = true;
+    }
+    if (rootObject) this.applyCurrentSettings(rootObject);
+  }
+
+  setColor(hex, rootObject) {
     this.currentPreset = 'custom';
     this.currentColor = hex;
-    if (rootObject) this.applyCurrentSettings(rootObject, clippingPlanes);
+    if (rootObject) this.applyCurrentSettings(rootObject);
   }
 
-  setPreset(presetId, rootObject, clippingPlanes) {
+  setPreset(presetId, rootObject) {
     this.currentPreset = presetId;
     if (presetId === 'original') {
-      if (rootObject) this.applyCurrentSettings(rootObject, clippingPlanes);
+      if (rootObject) this.applyCurrentSettings(rootObject);
       return;
     }
 
     const preset = COLOR_PRESETS.find(p => p.id === presetId);
     if (preset) {
       this.currentColor = preset.hex;
-      this.metalness = preset.metalness;
-      this.roughness = preset.roughness;
-      if (rootObject) this.applyCurrentSettings(rootObject, clippingPlanes);
+      if (rootObject) this.applyCurrentSettings(rootObject);
     }
-  }
-
-  setRoughness(val, rootObject, clippingPlanes) {
-    this.roughness = val;
-    if (rootObject) this.applyCurrentSettings(rootObject, clippingPlanes);
-  }
-
-  setMetalness(val, rootObject, clippingPlanes) {
-    this.metalness = val;
-    if (rootObject) this.applyCurrentSettings(rootObject, clippingPlanes);
-  }
-
-  setDoubleSided(val, rootObject, clippingPlanes) {
-    this.doubleSided = val;
-    if (rootObject) this.applyCurrentSettings(rootObject, clippingPlanes);
   }
 }

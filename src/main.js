@@ -25,6 +25,8 @@ class B08App {
     this.currentUnit = 'mm'; // 'mm', 'cm', 'in'
     this.autoRotate = false;
     this.isOrtho = false;
+    this.shadingEnabled = true;
+    this.shadowsEnabled = true;
 
     // Background & Environment Image State
     this.customBgTexture = null;
@@ -229,6 +231,20 @@ class B08App {
     this.scene.add(this.shadowPlane);
   }
 
+  applyShadowState(enabled) {
+    if (this.shadowPlane) this.shadowPlane.visible = enabled;
+    if (this.dirLight) this.dirLight.castShadow = enabled;
+    if (this.topStudioLight) this.topStudioLight.castShadow = enabled;
+    if (this.modelGroup) {
+      this.modelGroup.traverse(child => {
+        if (child.isMesh) {
+          child.castShadow = enabled;
+          child.receiveShadow = enabled;
+        }
+      });
+    }
+  }
+
   getVisibleMeshes() {
     const meshes = [];
     this.modelGroup.traverse((child) => {
@@ -266,10 +282,11 @@ class B08App {
       document.getElementById('status-filesize').textContent = `Size: ${fileSizeText}`;
     }
 
+    const shadowActive = this.shadingEnabled && this.shadowsEnabled;
     object.traverse((child) => {
       if (child.isMesh) {
-        child.castShadow = true;
-        child.receiveShadow = true;
+        child.castShadow = shadowActive;
+        child.receiveShadow = shadowActive;
         if (!child.geometry.attributes.normal) {
           child.geometry.computeVertexNormals();
         }
@@ -925,14 +942,6 @@ class B08App {
         document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
         swatch.classList.add('active');
         this.materialManager.setPreset(preset.id, this.modelGroup);
-        if (preset.roughness !== undefined) {
-          document.getElementById('input-roughness').value = preset.roughness;
-          document.getElementById('roughness-label').textContent = preset.roughness.toFixed(2);
-        }
-        if (preset.metalness !== undefined) {
-          document.getElementById('input-metalness').value = preset.metalness;
-          document.getElementById('metalness-label').textContent = preset.metalness.toFixed(2);
-        }
       });
       container.appendChild(swatch);
     });
@@ -1074,6 +1083,10 @@ class B08App {
         shadingFlyout.querySelectorAll('.view-sub-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         this.materialManager.setRenderMode(btn.dataset.mode, this.modelGroup);
+        const checkSmoothing = document.getElementById('check-smoothing');
+        if (checkSmoothing) {
+          checkSmoothing.checked = this.materialManager.smoothing;
+        }
         shadingFlyout.classList.remove('show');
       });
     });
@@ -1111,21 +1124,60 @@ class B08App {
       this.materialManager.setColor(e.target.value, this.modelGroup);
     });
 
-    document.getElementById('input-roughness').addEventListener('input', (e) => {
-      const val = parseFloat(e.target.value);
-      document.getElementById('roughness-label').textContent = val.toFixed(2);
-      this.materialManager.setRoughness(val, this.modelGroup);
-    });
+    // Surface Properties (3D Builder Style: Shading, Shadow, Reflection, Smoothing)
+    const checkShading = document.getElementById('check-shading');
+    const checkShadow = document.getElementById('check-shadow');
+    const rowShadow = document.getElementById('row-shadow');
+    const checkReflection = document.getElementById('check-reflection');
+    const checkSmoothing = document.getElementById('check-smoothing');
 
-    document.getElementById('input-metalness').addEventListener('input', (e) => {
-      const val = parseFloat(e.target.value);
-      document.getElementById('metalness-label').textContent = val.toFixed(2);
-      this.materialManager.setMetalness(val, this.modelGroup);
-    });
+    if (checkShading) {
+      checkShading.addEventListener('change', (e) => {
+        this.shadingEnabled = e.target.checked;
+        this.materialManager.setShading(this.shadingEnabled, this.modelGroup);
 
-    document.getElementById('check-doublesided').addEventListener('change', (e) => {
-      this.materialManager.setDoubleSided(e.target.checked, this.modelGroup);
-    });
+        if (rowShadow && checkShadow) {
+          if (this.shadingEnabled) {
+            rowShadow.style.opacity = '1';
+            rowShadow.style.pointerEvents = 'auto';
+            checkShadow.disabled = false;
+            this.applyShadowState(checkShadow.checked);
+          } else {
+            rowShadow.style.opacity = '0.35';
+            rowShadow.style.pointerEvents = 'none';
+            checkShadow.disabled = true;
+            this.applyShadowState(false);
+          }
+        }
+      });
+    }
+
+    if (checkShadow) {
+      checkShadow.addEventListener('change', (e) => {
+        this.shadowsEnabled = e.target.checked;
+        if (this.shadingEnabled) {
+          this.applyShadowState(this.shadowsEnabled);
+        }
+      });
+    }
+
+    if (checkReflection) {
+      checkReflection.addEventListener('change', (e) => {
+        this.materialManager.setReflection(e.target.checked, this.modelGroup);
+      });
+    }
+
+    if (checkSmoothing) {
+      checkSmoothing.addEventListener('change', (e) => {
+        this.materialManager.setSmoothing(e.target.checked, this.modelGroup);
+        if (shadingFlyout) {
+          shadingFlyout.querySelectorAll('.view-sub-btn').forEach(btn => {
+            if (btn.dataset.mode === 'solid') btn.classList.toggle('active', e.target.checked);
+            if (btn.dataset.mode === 'flat') btn.classList.toggle('active', !e.target.checked);
+          });
+        }
+      });
+    }
 
     // Background Selector
     document.querySelectorAll('#bg-selector .seg-btn').forEach(btn => {
@@ -1251,12 +1303,6 @@ class B08App {
     // Environment Toggles
     document.getElementById('check-grid').addEventListener('change', (e) => {
       this.gridHelper.visible = e.target.checked;
-    });
-
-    document.getElementById('check-shadow').addEventListener('change', (e) => {
-      this.shadowPlane.visible = e.target.checked;
-      this.dirLight.castShadow = e.target.checked;
-      if (this.topStudioLight) this.topStudioLight.castShadow = e.target.checked;
     });
 
     // Video Turntable Recorder & Framing Controls

@@ -588,6 +588,71 @@ input[type="range"]::-webkit-slider-thumb {
   box-shadow: 0 0 6px var(--accent-glow);
 }
 
+/* Windows 3D Builder Style Toggle Switch */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.toggle-switch-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 20px;
+}
+
+.toggle-switch-slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 2px;
+  bottom: 2px;
+  background-color: #cbd5e1;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.toggle-switch input:checked + .toggle-switch-slider {
+  background-color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+}
+
+.toggle-switch input:checked + .toggle-switch-slider:before {
+  transform: translateX(16px);
+  background-color: #0d0f14;
+}
+
+.toggle-switch input:disabled + .toggle-switch-slider {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.sub-toggle-row {
+  margin-left: 10px;
+  padding-left: 14px;
+  border-left: 2px solid rgba(56, 189, 248, 0.35);
+  transition: opacity 0.25s ease;
+}
+
 /* Color Presets Palette */
 .color-presets-grid {
   display: grid;

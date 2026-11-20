@@ -18,14 +18,12 @@
    - Preset camera views: Front, Back, Left, Right, Top, Bottom, and Isometric.
    - **Studio Light & Background Presets**: Default **Studio Light** mode (pure pitch-black background with a focused overhead top studio light and dramatic floor shadow falloff), along with Navy, Black, White, and **Custom Environment & Background Image** (upload JPG, PNG, WebP for 360° Equirectangular studio world or 2D backdrop).
 
-2. **Render & Shading Modes**:
-   - **Solid Shaded**: PBR smooth surface with adjustable roughness and metalness.
-   - **Flat Shaded**: Low-poly / faceted polygon representation.
-   - **Wireframe Overlay**: Edge topology lines overlaid on the solid model.
-   - **Wireframe Only**: Pure mesh wireframe.
-   - **Points Cloud**: Vertex point cloud visualization.
-   - **Surface Normals**: Colored surface normal vectors for debugging orientation.
-   - **X-Ray / Glass**: Semi-transparent internal cavity visualization.
+2. **Render & Surface Properties (3D Builder Style)**:
+   - **Shading (Toggle)**: Switch between lit surface rendering and unlit/unshaded uniform color.
+   - **Shadow (Toggle)**: Toggle directional and contact ground shadows (nested under Shading).
+   - **Reflection (Toggle)**: Switch between glossy specular environment reflections and matte diffuse finish.
+   - **Smoothing (Toggle)**: Toggle between smooth normal interpolation and faceted polygonal flat shading.
+   - **Shading Modes**: Solid Shaded, Flat Shaded, Wireframe Overlay, Wireframe Only, Points Cloud, Surface Normals, and X-Ray / Glass.
 
 3. **Format Support**:
    - **STL** (Binary & ASCII) - Includes the bundled **Stanford Bunny** sample (`Stanford_Bunny_sample.stl`).
