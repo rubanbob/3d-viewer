@@ -31,10 +31,12 @@ class B08App {
     // Background & Environment Image State
     this.customBgTexture = null;
     this.customBgDataUrl = null;
+    this.customBgImg = null;
     this.customBgMode = '360'; // '360' or 'backdrop'
     this.customBgEnvLighting = true;
     this.customBgBlur = 0.0;
     this.customBgIntensity = 1.0;
+    this.customBgOpacity = 1.0;
     this.currentBgType = 'studio';
     this.textureLoader = new THREE.TextureLoader();
 
@@ -752,19 +754,31 @@ class B08App {
       offscreen.width = this.canvas.width;
       offscreen.height = this.canvas.height;
       const ctx = offscreen.getContext('2d');
-      const img = new Image();
-      img.onload = () => {
+      ctx.fillStyle = '#0d0f14';
+      ctx.fillRect(0, 0, offscreen.width, offscreen.height);
+
+      const img = this.customBgImg || new Image();
+      const drawAndSave = () => {
         const hRatio = offscreen.width / img.width;
         const vRatio = offscreen.height / img.height;
         const ratio = Math.max(hRatio, vRatio);
         const centerShift_x = (offscreen.width - img.width * ratio) / 2;
         const centerShift_y = (offscreen.height - img.height * ratio) / 2;
+
+        ctx.globalAlpha = this.customBgOpacity;
         ctx.drawImage(img, 0, 0, img.width, img.height,
                       centerShift_x, centerShift_y, img.width * ratio, img.height * ratio);
+        ctx.globalAlpha = 1.0;
         ctx.drawImage(this.canvas, 0, 0);
         finishDownload(offscreen.toDataURL('image/png'));
       };
-      img.src = this.customBgDataUrl;
+
+      if (this.customBgImg && this.customBgImg.complete) {
+        drawAndSave();
+      } else {
+        img.onload = drawAndSave;
+        img.src = this.customBgDataUrl;
+      }
     } else {
       finishDownload(this.canvas.toDataURL('image/png'));
     }
@@ -845,17 +859,20 @@ class B08App {
     if (!this.customBgTexture) return;
 
     this.container.style.backgroundImage = 'none';
+    const backdropEl = document.getElementById('custom-backdrop');
 
     if (this.customBgMode === '360') {
+      if (backdropEl) backdropEl.style.display = 'none';
       this.scene.background = this.customBgTexture;
       this.scene.backgroundBlurriness = this.customBgBlur;
-      this.scene.backgroundIntensity = this.customBgIntensity;
+      this.scene.backgroundIntensity = this.customBgIntensity * this.customBgOpacity;
     } else {
       this.scene.background = null;
-      this.container.style.backgroundImage = `url("${this.customBgDataUrl}")`;
-      this.container.style.backgroundSize = 'cover';
-      this.container.style.backgroundPosition = 'center';
-      this.container.style.backgroundRepeat = 'no-repeat';
+      if (backdropEl) {
+        backdropEl.style.display = 'block';
+        backdropEl.style.backgroundImage = `url("${this.customBgDataUrl}")`;
+        backdropEl.style.opacity = this.customBgOpacity;
+      }
     }
 
     if (this.customBgEnvLighting) {
@@ -869,6 +886,10 @@ class B08App {
   setBackground(bgType) {
     this.currentBgType = bgType;
     this.container.style.backgroundImage = 'none';
+    const backdropEl = document.getElementById('custom-backdrop');
+    if (backdropEl && bgType !== 'custom-image') {
+      backdropEl.style.display = 'none';
+    }
 
     if (bgType === 'custom-image') {
       if (this.topStudioLight) this.topStudioLight.visible = false;
@@ -1208,6 +1229,12 @@ class B08App {
         const dataUrl = re.target.result;
         this.customBgDataUrl = dataUrl;
 
+        const img = new Image();
+        img.onload = () => {
+          this.customBgImg = img;
+        };
+        img.src = dataUrl;
+
         this.textureLoader.load(dataUrl, (texture) => {
           texture.colorSpace = THREE.SRGBColorSpace;
           texture.mapping = THREE.EquirectangularReflectionMapping;
@@ -1242,6 +1269,17 @@ class B08App {
         this.customBgTexture = null;
       }
       this.customBgDataUrl = null;
+      this.customBgImg = null;
+      this.customBgOpacity = 1.0;
+      const opacityInput = document.getElementById('input-bg-opacity');
+      if (opacityInput) opacityInput.value = '100';
+      const opacityLabel = document.getElementById('bg-opacity-label');
+      if (opacityLabel) opacityLabel.textContent = '100%';
+      const backdropEl = document.getElementById('custom-backdrop');
+      if (backdropEl) {
+        backdropEl.style.display = 'none';
+        backdropEl.style.backgroundImage = 'none';
+      }
       customImageControls.style.display = 'none';
       segBtnCustomBg.style.display = 'none';
 
@@ -1292,13 +1330,33 @@ class B08App {
       this.customBgIntensity = val / 100;
       if (this.currentBgType === 'custom-image') {
         if (this.customBgMode === '360') {
-          this.scene.backgroundIntensity = this.customBgIntensity;
+          this.scene.backgroundIntensity = this.customBgIntensity * this.customBgOpacity;
         }
         if (this.scene.environment) {
           this.scene.environmentIntensity = this.customBgIntensity;
         }
       }
     });
+
+    // Background opacity slider
+    const inputBgOpacity = document.getElementById('input-bg-opacity');
+    if (inputBgOpacity) {
+      inputBgOpacity.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value, 10);
+        document.getElementById('bg-opacity-label').textContent = `${val}%`;
+        this.customBgOpacity = val / 100;
+        if (this.currentBgType === 'custom-image') {
+          if (this.customBgMode === '360') {
+            this.scene.backgroundIntensity = this.customBgIntensity * this.customBgOpacity;
+          } else {
+            const backdropEl = document.getElementById('custom-backdrop');
+            if (backdropEl) {
+              backdropEl.style.opacity = this.customBgOpacity;
+            }
+          }
+        }
+      });
+    }
 
     // Environment Toggles
     document.getElementById('check-grid').addEventListener('change', (e) => {

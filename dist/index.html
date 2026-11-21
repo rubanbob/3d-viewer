@@ -57,13 +57,14 @@
   </script>
 
   <link rel="icon" type="image/png" href="./favicon.png">
-  <script type="module" crossorigin src="./assets-web/index-qD8lY4zi.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets-web/index-CJkzVcSq.css">
+  <script type="module" crossorigin src="./assets-web/index-BGKrJn2W.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets-web/index-ZuHh94qj.css">
 </head>
 <body>
   <div id="app">
     <!-- 3D Canvas Viewport -->
     <div id="viewport-container">
+      <div id="custom-backdrop" class="custom-backdrop" style="display:none;"></div>
       <canvas id="webgl-canvas"></canvas>
 
       <!-- Framing Mask & Aspect Ratio Overlay -->
@@ -450,6 +451,14 @@
                   <span id="bg-intensity-label">100%</span>
                 </div>
                 <input type="range" id="input-bg-intensity" min="10" max="250" value="100">
+              </div>
+
+              <div class="range-slider-container">
+                <div class="range-header">
+                  <span>Opacity:</span>
+                  <span id="bg-opacity-label">100%</span>
+                </div>
+                <input type="range" id="input-bg-opacity" min="0" max="100" value="100">
               </div>
             </div>
 

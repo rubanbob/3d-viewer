@@ -358,6 +358,35 @@ export class VideoTurntableRecorder {
       sh = Math.max(1, Math.min(webglCanvas.height - sy, sh));
     }
 
+    // If in 2D backdrop mode, composite background image with opacity under the WebGL canvas
+    if (this.app.currentBgType === 'custom-image' && this.app.customBgMode === 'backdrop') {
+      this.recordCtx.fillStyle = '#0d0f14';
+      this.recordCtx.fillRect(0, 0, this.recordCanvas.width, this.recordCanvas.height);
+
+      const img = this.app.customBgImg;
+      if (img && img.complete && img.naturalWidth > 0) {
+        const hRatio = webglCanvas.width / img.width;
+        const vRatio = webglCanvas.height / img.height;
+        const ratio = Math.max(hRatio, vRatio);
+        const centerShift_x = (webglCanvas.width - img.width * ratio) / 2;
+        const centerShift_y = (webglCanvas.height - img.height * ratio) / 2;
+
+        const scaleX = this.recordCanvas.width / sw;
+        const scaleY = this.recordCanvas.height / sh;
+
+        this.recordCtx.save();
+        this.recordCtx.globalAlpha = this.app.customBgOpacity;
+        this.recordCtx.drawImage(
+          img,
+          (centerShift_x - sx) * scaleX,
+          (centerShift_y - sy) * scaleY,
+          img.width * ratio * scaleX,
+          img.height * ratio * scaleY
+        );
+        this.recordCtx.restore();
+      }
+    }
+
     // Draw slice from WebGL canvas to recording canvas
     this.recordCtx.drawImage(
       webglCanvas,
